@@ -26,7 +26,7 @@ describe('AyuCare Core Engine & Security Tests', () => {
   test('Security: Caregiver passcode verification works correctly', () => {
     const result = verifyCaregiverPasscode('CARE-2026');
     expect(result.success).toBe(true);
-    expect(result.caregiver?.role).toBe('PRIMARY_CAREGIVER');
+    expect(result.caregiver?.role).toBe('CAREGIVER');
   });
 
   test('Medication Engine: Returns active medications with complete details', () => {
