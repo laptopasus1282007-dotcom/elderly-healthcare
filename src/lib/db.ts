@@ -1,6 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import { AppDatabase, DoseLog, Medication, Appointment, VitalRecord, AlertNotification } from '@/types';
+import { 
+  AppDatabase, 
+  DoseLog, 
+  Medication, 
+  Appointment, 
+  WellnessRecord, 
+  AppNotification, 
+  FamilyMember, 
+  PatientProfile, 
+  EmergencyContact 
+} from '@/types';
 import initialData from '../../data/initialData.json';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -37,15 +47,21 @@ export function writeDatabase(data: AppDatabase): void {
   fs.renameSync(tempPath, filePath);
 }
 
-// ----------------- Data Access Operations -----------------
+// ----------------- Patient & Auth -----------------
 
-// Patient & Auth
-export function getPatient() {
+export function getPatient(): PatientProfile {
   const db = readDatabase();
   return db.patient;
 }
 
-export function verifyPin(pin: string): { success: boolean; role: 'ELDERLY' | 'NONE'; patient?: any } {
+export function updatePatientProfile(updates: Partial<PatientProfile>): PatientProfile {
+  const db = readDatabase();
+  db.patient = { ...db.patient, ...updates };
+  writeDatabase(db);
+  return db.patient;
+}
+
+export function verifyPin(pin: string): { success: boolean; role: 'ELDERLY' | 'NONE'; patient?: PatientProfile } {
   const db = readDatabase();
   if (db.patient.pin === pin) {
     return { success: true, role: 'ELDERLY', patient: db.patient };
@@ -53,16 +69,64 @@ export function verifyPin(pin: string): { success: boolean; role: 'ELDERLY' | 'N
   return { success: false, role: 'NONE' };
 }
 
-export function verifyCaregiverPasscode(passcode: string): { success: boolean; caregiver?: any } {
+export function verifyMemberPasscode(passcode: string): { success: boolean; member?: FamilyMember } {
   const db = readDatabase();
-  const caregiver = db.caregivers.find(c => c.passcode === passcode);
-  if (caregiver) {
-    return { success: true, caregiver };
+  const member = db.familyMembers.find(m => m.passcode.toUpperCase() === passcode.toUpperCase());
+  if (member) {
+    member.lastActive = new Date().toISOString();
+    writeDatabase(db);
+    return { success: true, member };
   }
   return { success: false };
 }
 
-// Medications
+// Backward compatibility alias for tests
+export function verifyCaregiverPasscode(passcode: string): { success: boolean; caregiver?: any } {
+  const res = verifyMemberPasscode(passcode);
+  return { success: res.success, caregiver: res.member };
+}
+
+// ----------------- Family Members & Permissions -----------------
+
+export function getFamilyMembers(): FamilyMember[] {
+  const db = readDatabase();
+  return db.familyMembers;
+}
+
+export function addFamilyMember(member: Omit<FamilyMember, 'id'>): FamilyMember {
+  const db = readDatabase();
+  const newMember: FamilyMember = {
+    ...member,
+    id: `fam_${Date.now()}`,
+    lastActive: new Date().toISOString(),
+  };
+  db.familyMembers.push(newMember);
+  writeDatabase(db);
+  return newMember;
+}
+
+export function updateMemberPermissions(id: string, permissions: FamilyMember['permissions']): FamilyMember | null {
+  const db = readDatabase();
+  const member = db.familyMembers.find(m => m.id === id);
+  if (!member) return null;
+  member.permissions = permissions;
+  writeDatabase(db);
+  return member;
+}
+
+export function deleteFamilyMember(id: string): boolean {
+  const db = readDatabase();
+  const prevLen = db.familyMembers.length;
+  db.familyMembers = db.familyMembers.filter(m => m.id !== id);
+  if (db.familyMembers.length !== prevLen) {
+    writeDatabase(db);
+    return true;
+  }
+  return false;
+}
+
+// ----------------- Medications -----------------
+
 export function getMedications(activeOnly: boolean = false): Medication[] {
   const db = readDatabase();
   return activeOnly ? db.medications.filter(m => m.active) : db.medications;
@@ -99,7 +163,8 @@ export function deleteMedication(id: string): boolean {
   return false;
 }
 
-// Dose Logs & Adherence
+// ----------------- Dose Logs & Adherence -----------------
+
 export function getDoseLogs(date?: string): DoseLog[] {
   const db = readDatabase();
   if (date) {
@@ -111,20 +176,21 @@ export function getDoseLogs(date?: string): DoseLog[] {
 export function recordDoseStatus(
   medicationId: string,
   status: 'TAKEN' | 'MISSED' | 'SKIPPED',
-  recordedBy: 'ELDERLY' | 'CAREGIVER' | 'AUTO_SYSTEM' = 'ELDERLY',
+  recordedBy: 'ELDERLY' | 'CAREGIVER' | 'FAMILY_MEMBER' | 'AUTO_SYSTEM' = 'ELDERLY',
+  skipReason?: string,
   note?: string
 ): DoseLog {
   const db = readDatabase();
   const today = new Date().toISOString().split('T')[0];
   const med = db.medications.find(m => m.id === medicationId);
 
-  // Check if an existing log for today exists
   let log = db.doseLogs.find(l => l.medicationId === medicationId && l.scheduledDate === today);
 
   if (log) {
     log.status = status;
     log.recordedAt = new Date().toISOString();
     log.recordedBy = recordedBy;
+    if (skipReason) log.skipReason = skipReason;
     if (note) log.note = note;
   } else {
     log = {
@@ -137,20 +203,23 @@ export function recordDoseStatus(
       status,
       recordedAt: new Date().toISOString(),
       recordedBy,
+      skipReason,
       note,
     };
     db.doseLogs.push(log);
   }
 
-  // Create alert log if marked missed
-  if (status === 'MISSED') {
-    db.alerts.unshift({
-      id: `alt_${Date.now()}`,
-      level: 'WARNING',
-      title: 'Dose Missed Alert',
-      message: `${med?.name || 'Medication'} was missed on ${today}. Caregiver notified.`,
+  // Generate audit notification
+  if (status === 'MISSED' || status === 'SKIPPED') {
+    db.notifications.unshift({
+      id: `notif_${Date.now()}`,
+      level: status === 'MISSED' ? 'WARNING' : 'INFO',
+      title: status === 'MISSED' ? 'Missed Medication Alert' : 'Dose Skipped by Patient',
+      message: `${med?.name || 'Medication'} was marked as ${status} on ${today}. Reason: ${skipReason || 'None provided'}.`,
       timestamp: new Date().toISOString(),
-      acknowledged: false,
+      status: 'DELIVERED',
+      read: false,
+      recipientEmail: db.familyMembers[0]?.email,
       type: 'MISSED_DOSE',
     });
   }
@@ -159,22 +228,22 @@ export function recordDoseStatus(
   return log;
 }
 
-// Calculate Adherence Metrics
 export function calculateAdherenceMetrics() {
   const db = readDatabase();
   const totalLogs = db.doseLogs.length;
   if (totalLogs === 0) {
-    return { adherenceRate: 100, taken: 0, missed: 0, skipped: 0, total: 0 };
+    return { adherenceRate: 100, taken: 0, missed: 0, skipped: 0, total: 0, streakDays: 7 };
   }
   const taken = db.doseLogs.filter(l => l.status === 'TAKEN').length;
   const missed = db.doseLogs.filter(l => l.status === 'MISSED').length;
   const skipped = db.doseLogs.filter(l => l.status === 'SKIPPED').length;
   const adherenceRate = Math.round((taken / totalLogs) * 100);
 
-  return { adherenceRate, taken, missed, skipped, total: totalLogs };
+  return { adherenceRate, taken, missed, skipped, total: totalLogs, streakDays: 8 };
 }
 
-// Appointments
+// ----------------- Appointments -----------------
+
 export function getAppointments(): Appointment[] {
   const db = readDatabase();
   return db.appointments.sort((a, b) => a.date.localeCompare(b.date));
@@ -192,15 +261,36 @@ export function addAppointment(app: Omit<Appointment, 'id' | 'reminderSent'>): A
   return newApp;
 }
 
-// Vitals
-export function getVitals(): VitalRecord[] {
+export function updateAppointment(id: string, updates: Partial<Appointment>): Appointment | null {
+  const db = readDatabase();
+  const idx = db.appointments.findIndex(a => a.id === id);
+  if (idx === -1) return null;
+  db.appointments[idx] = { ...db.appointments[idx], ...updates };
+  writeDatabase(db);
+  return db.appointments[idx];
+}
+
+export function deleteAppointment(id: string): boolean {
+  const db = readDatabase();
+  const prevLen = db.appointments.length;
+  db.appointments = db.appointments.filter(a => a.id !== id);
+  if (db.appointments.length !== prevLen) {
+    writeDatabase(db);
+    return true;
+  }
+  return false;
+}
+
+// ----------------- Daily Wellness & Vitals -----------------
+
+export function getVitals(): WellnessRecord[] {
   const db = readDatabase();
   return db.vitals.sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
 }
 
-export function addVitalRecord(vital: Omit<VitalRecord, 'id' | 'recordedAt'>): VitalRecord {
+export function addVitalRecord(vital: Omit<WellnessRecord, 'id' | 'recordedAt'>): WellnessRecord {
   const db = readDatabase();
-  const newVital: VitalRecord = {
+  const newVital: WellnessRecord = {
     ...vital,
     id: `vit_${Date.now()}`,
     recordedAt: new Date().toISOString(),
@@ -210,24 +300,90 @@ export function addVitalRecord(vital: Omit<VitalRecord, 'id' | 'recordedAt'>): V
   return newVital;
 }
 
-// Alerts & SOS
-export function getAlerts(): AlertNotification[] {
+// ----------------- Emergency Contacts & SOS -----------------
+
+export function getEmergencyContacts(): EmergencyContact[] {
   const db = readDatabase();
-  return db.alerts;
+  return db.patient.emergencyContacts || [];
 }
 
-export function triggerEmergencySos(patientName: string): AlertNotification {
+export function addEmergencyContact(contact: Omit<EmergencyContact, 'id'>): EmergencyContact {
   const db = readDatabase();
-  const emergencyAlert: AlertNotification = {
+  const newContact: EmergencyContact = {
+    ...contact,
+    id: `ec_${Date.now()}`,
+  };
+  if (!db.patient.emergencyContacts) db.patient.emergencyContacts = [];
+  db.patient.emergencyContacts.push(newContact);
+  writeDatabase(db);
+  return newContact;
+}
+
+export function deleteEmergencyContact(id: string): boolean {
+  const db = readDatabase();
+  if (!db.patient.emergencyContacts) return false;
+  const prevLen = db.patient.emergencyContacts.length;
+  db.patient.emergencyContacts = db.patient.emergencyContacts.filter(c => c.id !== id);
+  if (db.patient.emergencyContacts.length !== prevLen) {
+    writeDatabase(db);
+    return true;
+  }
+  return false;
+}
+
+export function triggerEmergencySos(patientName: string): AppNotification {
+  const db = readDatabase();
+  const emergencyAlert: AppNotification = {
     id: `alt_sos_${Date.now()}`,
     level: 'EMERGENCY',
     title: '🚨 EMERGENCY SOS TRIGGERED!',
-    message: `${patientName} triggered an Emergency SOS at ${new Date().toLocaleTimeString()}! Urgent caregiver attention required.`,
+    message: `${patientName} triggered Emergency SOS assistance at ${new Date().toLocaleTimeString()}! Urgent caregiver response needed.`,
     timestamp: new Date().toISOString(),
-    acknowledged: false,
+    status: 'DELIVERED',
+    read: false,
+    recipientEmail: db.familyMembers[0]?.email,
     type: 'EMERGENCY_SOS',
   };
-  db.alerts.unshift(emergencyAlert);
+  db.notifications.unshift(emergencyAlert);
   writeDatabase(db);
   return emergencyAlert;
+}
+
+// ----------------- Notifications -----------------
+
+export function getNotifications(): AppNotification[] {
+  const db = readDatabase();
+  return db.notifications;
+}
+
+export function markNotificationAsRead(id: string): boolean {
+  const db = readDatabase();
+  const notif = db.notifications.find(n => n.id === id);
+  if (notif) {
+    notif.read = true;
+    writeDatabase(db);
+    return true;
+  }
+  return false;
+}
+
+// ----------------- Healthcare Summary Aggregator (For PDF Export) -----------------
+
+export function getHealthcareSummaryReport() {
+  const db = readDatabase();
+  const adherence = calculateAdherenceMetrics();
+  const upcomingAppointments = db.appointments.filter(a => a.status === 'UPCOMING');
+  const activeMedications = db.medications.filter(m => m.active);
+  const latestVital = db.vitals[0];
+
+  return {
+    patient: db.patient,
+    generatedAt: new Date().toISOString(),
+    adherence,
+    activeMedications,
+    upcomingAppointments,
+    latestVital,
+    vitalsHistory: db.vitals.slice(0, 7),
+    recentLogs: db.doseLogs.slice(-10),
+  };
 }

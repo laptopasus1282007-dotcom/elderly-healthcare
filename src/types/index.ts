@@ -1,16 +1,19 @@
+export type UserRole = 'ELDERLY' | 'CAREGIVER' | 'FAMILY_MEMBER' | 'DOCTOR';
 export type TimingCategory = 'MORNING' | 'AFTERNOON' | 'EVENING' | 'NIGHT';
 export type DoseStatus = 'PENDING' | 'TAKEN' | 'MISSED' | 'SKIPPED';
-export type CaregiverRole = 'PRIMARY_CAREGIVER' | 'FAMILY_MEMBER' | 'DOCTOR';
-export type MoodType = 'HAPPY' | 'NORMAL' | 'TIRED' | 'DIZZY' | 'UNWELL';
+export type MoodType = 'GOOD' | 'OKAY' | 'TIRED' | 'DIZZY';
 export type AlertLevel = 'INFO' | 'WARNING' | 'EMERGENCY';
+export type NotificationStatus = 'SENT' | 'PENDING' | 'DELIVERED' | 'FAILED';
 
 export interface EmergencyContact {
+  id: string;
   name: string;
   phone: string;
   relationship: string;
+  isPrimary: boolean;
 }
 
-export interface Patient {
+export interface PatientProfile {
   id: string;
   name: string;
   marathiName: string;
@@ -19,16 +22,26 @@ export interface Patient {
   pin: string; // 4-digit passcode for elderly one-touch access
   bloodGroup: string;
   chronicConditions: string[];
-  emergencyContact: EmergencyContact;
+  allergies: string[];
+  emergencyContacts: EmergencyContact[];
+  address: string;
 }
 
-export interface Caregiver {
+export interface FamilyMember {
   id: string;
   name: string;
-  role: CaregiverRole;
+  role: UserRole;
+  relationship: string;
   email: string;
   phone: string;
-  passcode: string; // e.g. CARE-2026
+  passcode: string;
+  permissions: {
+    canViewMedications: boolean;
+    canEditSchedules: boolean;
+    canViewVitals: boolean;
+    canReceiveAlerts: boolean;
+  };
+  lastActive?: string;
 }
 
 export interface Medication {
@@ -36,9 +49,13 @@ export interface Medication {
   name: string;
   marathiName?: string;
   dosage: string;
+  frequency: string; // e.g. "Once Daily", "Twice Daily", "As needed"
   instruction: string; // e.g. "After Breakfast / न्याहारीनंतर"
   timingCategory: TimingCategory;
   scheduledTime: string; // "08:30"
+  startDate: string;
+  endDate?: string;
+  prescribingDoctor: string;
   pillColor: string; // "blue" | "white" | "red" | "yellow" | "green"
   shape: string; // "round" | "capsule" | "oval"
   active: boolean;
@@ -55,7 +72,8 @@ export interface DoseLog {
   scheduledTime: string; // "08:30"
   status: DoseStatus;
   recordedAt?: string;
-  recordedBy?: 'ELDERLY' | 'CAREGIVER' | 'AUTO_SYSTEM';
+  recordedBy?: 'ELDERLY' | 'CAREGIVER' | 'FAMILY_MEMBER' | 'AUTO_SYSTEM';
+  skipReason?: string;
   note?: string;
 }
 
@@ -70,36 +88,51 @@ export interface Appointment {
   purpose: string;
   status: 'UPCOMING' | 'COMPLETED' | 'CANCELLED';
   reminderSent: boolean;
+  notes?: string;
 }
 
-export interface VitalRecord {
+export interface WellnessRecord {
   id: string;
   recordedAt: string;
+  mood: MoodType;
   bpSystolic?: number;
   bpDiastolic?: number;
   bloodSugar?: number;
   pulseRate?: number;
-  mood: MoodType;
   notes?: string;
+  recordedBy?: string;
 }
 
-export interface AlertNotification {
+export interface AppNotification {
   id: string;
   level: AlertLevel;
   title: string;
   message: string;
   timestamp: string;
-  acknowledged: boolean;
+  status: NotificationStatus;
+  read: boolean;
   recipientEmail?: string;
-  type: 'MISSED_DOSE' | 'UPCOMING_APPOINTMENT' | 'EMERGENCY_SOS' | 'DRUG_CONFLICT';
+  type: 'MISSED_DOSE' | 'UPCOMING_DOSE' | 'UPCOMING_APPOINTMENT' | 'EMERGENCY_SOS' | 'WELLNESS_UPDATE';
 }
 
 export interface AppDatabase {
-  patient: Patient;
-  caregivers: Caregiver[];
+  patient: PatientProfile;
+  familyMembers: FamilyMember[];
   medications: Medication[];
   doseLogs: DoseLog[];
   appointments: Appointment[];
-  vitals: VitalRecord[];
-  alerts: AlertNotification[];
+  vitals: WellnessRecord[];
+  notifications: AppNotification[];
 }
+
+export type ActiveNavTab = 
+  | 'OVERVIEW' 
+  | 'MEDICATIONS' 
+  | 'CALENDAR' 
+  | 'APPOINTMENTS' 
+  | 'FAMILY' 
+  | 'REPORTS' 
+  | 'WELLNESS' 
+  | 'EMERGENCY' 
+  | 'NOTIFICATIONS' 
+  | 'SETTINGS';

@@ -8,20 +8,20 @@ export async function POST(
 ) {
   try {
     const body = await req.json();
-    const { status, recordedBy, note } = body;
+    const { status, recordedBy, skipReason, note } = body;
     const medicationId = params.id;
 
     if (!status || !['TAKEN', 'MISSED', 'SKIPPED'].includes(status)) {
       return NextResponse.json({ error: 'Valid status (TAKEN, MISSED, SKIPPED) is required' }, { status: 400 });
     }
 
-    const log = recordDoseStatus(medicationId, status, recordedBy || 'ELDERLY', note);
+    const log = recordDoseStatus(medicationId, status, recordedBy || 'ELDERLY', skipReason, note);
     const patient = getPatient();
     const db = readDatabase();
-    const caregiverEmail = db.caregivers[0]?.email || process.env.CAREGIVER_NOTIFICATION_EMAIL || 'caregiver@example.com';
+    const caregiverEmail = db.familyMembers[0]?.email || process.env.CAREGIVER_NOTIFICATION_EMAIL || 'caregiver@ayucare.org';
 
-    // Proactive Alert Dispatch if MISSED
-    if (status === 'MISSED') {
+    // Proactive Alert Dispatch if MISSED or SKIPPED
+    if (status === 'MISSED' || status === 'SKIPPED') {
       await sendEmailNotification({
         to: caregiverEmail,
         patientName: patient.name,

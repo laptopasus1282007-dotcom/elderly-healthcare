@@ -9,28 +9,53 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: "#f0fdf4",
-          100: "#dcfce7",
-          500: "#22c55e",
-          600: "#16a34a",
-          700: "#15803d",
-          800: "#166534",
+        ayucare: {
+          teal: {
+            DEFAULT: "#174D46",
+            50: "#F2F7F6",
+            100: "#E1EDEB",
+            200: "#C3DBD7",
+            300: "#8FAFA9",
+            400: "#4D827A",
+            500: "#174D46",
+            600: "#13423C",
+            700: "#0F3430",
+            800: "#0A2421",
+            900: "#061816",
+          },
+          sage: {
+            DEFAULT: "#8EAA98",
+            50: "#F5F8F6",
+            100: "#E5EDE8",
+            200: "#C9DBD0",
+            300: "#ACC7B7",
+            400: "#8EAA98",
+            500: "#6F917B",
+            600: "#55745F",
+          },
+          ivory: {
+            DEFAULT: "#F7F7F2",
+            50: "#FCFCFA",
+            100: "#F7F7F2",
+            200: "#EDEDE4",
+            300: "#DFDFD2",
+          },
+          charcoal: {
+            DEFAULT: "#202B29",
+            50: "#F4F5F5",
+            100: "#E4E6E5",
+            500: "#737D79",
+            700: "#3D4846",
+            900: "#202B29",
+          },
+          success: "#2E7D32",
+          warning: "#D97706",
+          danger: "#DC2626",
         },
-        elderly: {
-          bg: "#0f172a",
-          card: "#1e293b",
-          highlight: "#fbbf24",
-          taken: "#10b981",
-          missed: "#ef4444",
-        }
       },
-      fontSize: {
-        "accessible-lg": ["1.35rem", { lineHeight: "1.75rem" }],
-        "accessible-xl": ["1.75rem", { lineHeight: "2.25rem" }],
-        "accessible-2xl": ["2.25rem", { lineHeight: "2.75rem" }],
-        "accessible-3xl": ["3rem", { lineHeight: "3.5rem" }],
-      }
+      fontFamily: {
+        sans: ['Inter', 'Manrope', 'system-ui', '-apple-system', 'sans-serif'],
+      },
     },
   },
   plugins: [],

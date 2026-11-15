@@ -10,30 +10,84 @@
     "chronicConditions": [
       "Hypertension (उच्च रक्तदाब)",
       "Type 2 Diabetes (मधुमेह)",
-      "Mild Arthritis (सांधेदुखी)"
+      "Mild Osteoarthritis (सांधेदुखी)"
     ],
-    "emergencyContact": {
-      "name": "Rajesh Joshi",
-      "phone": "+91 98765 43210",
-      "relationship": "Son (मुलगा)"
-    }
+    "allergies": [
+      "Penicillin (पेनिसिलिन ऍलर्जी)"
+    ],
+    "emergencyContacts": [
+      {
+        "id": "ec_01",
+        "name": "Rajesh Joshi",
+        "phone": "+91 98765 43210",
+        "relationship": "Son (मुलगा)",
+        "isPrimary": true
+      },
+      {
+        "id": "ec_02",
+        "name": "Pooja Joshi-Desai",
+        "phone": "+91 98220 11223",
+        "relationship": "Daughter (मुलगी)",
+        "isPrimary": false
+      },
+      {
+        "id": "ec_03",
+        "name": "Dr. Ananya Kulkarni",
+        "phone": "+91 99887 76655",
+        "relationship": "Attending Cardiologist",
+        "isPrimary": false
+      }
+    ],
+    "address": "402, Rutuparna Heights, Model Colony, Shivajinagar, Pune 411016"
   },
-  "caregivers": [
+  "familyMembers": [
     {
-      "id": "care_01",
+      "id": "fam_01",
       "name": "Rajesh Joshi",
-      "role": "PRIMARY_CAREGIVER",
-      "email": "rajesh.caregiver@example.com",
+      "role": "CAREGIVER",
+      "relationship": "Son (Primary Caregiver)",
+      "email": "rajesh.caregiver@ayucare.org",
       "phone": "+91 98765 43210",
-      "passcode": "CARE-2026"
+      "passcode": "CARE-2026",
+      "permissions": {
+        "canViewMedications": true,
+        "canEditSchedules": true,
+        "canViewVitals": true,
+        "canReceiveAlerts": true
+      },
+      "lastActive": "2026-11-15T09:30:00+05:30"
     },
     {
-      "id": "care_02",
+      "id": "fam_02",
+      "name": "Pooja Joshi-Desai",
+      "role": "FAMILY_MEMBER",
+      "relationship": "Daughter",
+      "email": "pooja.family@ayucare.org",
+      "phone": "+91 98220 11223",
+      "passcode": "FAM-2026",
+      "permissions": {
+        "canViewMedications": true,
+        "canEditSchedules": false,
+        "canViewVitals": true,
+        "canReceiveAlerts": true
+      },
+      "lastActive": "2026-11-14T20:15:00+05:30"
+    },
+    {
+      "id": "fam_03",
       "name": "Dr. Ananya Kulkarni",
       "role": "DOCTOR",
+      "relationship": "Senior Cardiologist",
       "email": "dr.kulkarni@cityclinic.org",
       "phone": "+91 99887 76655",
-      "passcode": "DOC-2026"
+      "passcode": "DOC-2026",
+      "permissions": {
+        "canViewMedications": true,
+        "canEditSchedules": true,
+        "canViewVitals": true,
+        "canReceiveAlerts": true
+      },
+      "lastActive": "2026-11-13T16:45:00+05:30"
     }
   ],
   "medications": [
@@ -42,56 +96,68 @@
       "name": "Telmisartan 40mg",
       "marathiName": "टेल्मिसार्टन (रक्तदाब)",
       "dosage": "1 Tablet (४० मि.ग्रॅ.)",
+      "frequency": "Once Daily (रोज एकदा)",
       "instruction": "After Breakfast / न्याहारीनंतर",
       "timingCategory": "MORNING",
       "scheduledTime": "08:30",
+      "startDate": "2026-01-10",
+      "prescribingDoctor": "Dr. Ananya Kulkarni",
       "pillColor": "blue",
       "shape": "round",
       "active": true,
-      "purpose": "Blood Pressure regulation",
-      "precautions": "Take with water. Do not skip."
+      "purpose": "Essential Hypertension regulation",
+      "precautions": "Take with full glass of water. Do not skip on travel days."
     },
     {
       "id": "med_02",
       "name": "Metformin 500mg",
       "marathiName": "मेटफॉर्मिन (मधुमेह)",
       "dosage": "1 Tablet (५०० मि.ग्रॅ.)",
+      "frequency": "Twice Daily (रोज दोनदा)",
       "instruction": "After Lunch / दुपारच्या जेवणानंतर",
       "timingCategory": "AFTERNOON",
       "scheduledTime": "13:30",
+      "startDate": "2026-02-15",
+      "prescribingDoctor": "Dr. Ramesh Deshmukh",
       "pillColor": "white",
       "shape": "oval",
       "active": true,
-      "purpose": "Controls blood sugar",
-      "precautions": "Do not take on empty stomach."
+      "purpose": "Glycemic Blood Sugar control",
+      "precautions": "Take strictly after meal to prevent gastric upset."
     },
     {
       "id": "med_03",
       "name": "Glimepiride 1mg",
       "marathiName": "ग्लिमेपिराइड (साखर नियंत्रण)",
       "dosage": "1 Tablet (१ मि.ग्रॅ.)",
+      "frequency": "Once Daily (रोज एकदा)",
       "instruction": "Before Dinner / रात्रीच्या जेवणापूर्वी ३० मिनिटे",
       "timingCategory": "NIGHT",
       "scheduledTime": "20:00",
+      "startDate": "2026-03-01",
+      "prescribingDoctor": "Dr. Ramesh Deshmukh",
       "pillColor": "yellow",
       "shape": "round",
       "active": true,
-      "purpose": "Evening glucose control",
-      "precautions": "Eat dinner within 30 minutes of taking."
+      "purpose": "Evening post-prandial glucose regulation",
+      "precautions": "Consume dinner within 30 minutes of taking."
     },
     {
       "id": "med_04",
-      "name": "Calcium + Vitamin D3",
+      "name": "Calcium Carbonate + Vit D3",
       "marathiName": "कॅल्शियम + व्हिटॅमिन डी३",
       "dosage": "1 Capsule",
+      "frequency": "Once Daily (रोज रात्री)",
       "instruction": "Before Bed / झोपण्यापूर्वी",
       "timingCategory": "NIGHT",
       "scheduledTime": "21:30",
+      "startDate": "2026-01-20",
+      "prescribingDoctor": "Dr. Ananya Kulkarni",
       "pillColor": "green",
       "shape": "capsule",
       "active": true,
-      "purpose": "Bone density & joint health",
-      "precautions": "Take with warm milk or water."
+      "purpose": "Bone density & joint mobility support",
+      "precautions": "Take with warm water or milk."
     }
   ],
   "doseLogs": [
@@ -103,9 +169,9 @@
       "scheduledDate": "2026-11-15",
       "scheduledTime": "08:30",
       "status": "TAKEN",
-      "recordedAt": "2026-11-15T04:41:53.974Z",
+      "recordedAt": "2026-11-15T10:50:32.397222",
       "recordedBy": "ELDERLY",
-      "note": "Unit test verification"
+      "note": "Python unit test verification"
     },
     {
       "id": "log_02",
@@ -128,70 +194,139 @@
     {
       "id": "log_04",
       "medicationId": "med_04",
-      "medicationName": "Calcium + Vitamin D3",
+      "medicationName": "Calcium Carbonate + Vit D3",
       "dosage": "1 Capsule",
       "scheduledDate": "2026-11-15",
       "scheduledTime": "21:30",
       "status": "PENDING"
+    },
+    {
+      "id": "log_05",
+      "medicationId": "med_01",
+      "medicationName": "Telmisartan 40mg",
+      "dosage": "1 Tablet",
+      "scheduledDate": "2026-11-14",
+      "scheduledTime": "08:30",
+      "status": "TAKEN",
+      "recordedAt": "2026-11-14T08:32:00+05:30",
+      "recordedBy": "ELDERLY"
+    },
+    {
+      "id": "log_06",
+      "medicationId": "med_02",
+      "medicationName": "Metformin 500mg",
+      "dosage": "1 Tablet",
+      "scheduledDate": "2026-11-14",
+      "scheduledTime": "13:30",
+      "status": "TAKEN",
+      "recordedAt": "2026-11-14T13:40:00+05:30",
+      "recordedBy": "CAREGIVER"
+    },
+    {
+      "id": "log_07",
+      "medicationId": "med_03",
+      "medicationName": "Glimepiride 1mg",
+      "dosage": "1 Tablet",
+      "scheduledDate": "2026-11-14",
+      "scheduledTime": "20:00",
+      "status": "TAKEN",
+      "recordedAt": "2026-11-14T20:05:00+05:30",
+      "recordedBy": "ELDERLY"
+    },
+    {
+      "id": "log_08",
+      "medicationId": "med_04",
+      "medicationName": "Calcium Carbonate + Vit D3",
+      "dosage": "1 Capsule",
+      "scheduledDate": "2026-11-14",
+      "scheduledTime": "21:30",
+      "status": "TAKEN",
+      "recordedAt": "2026-11-14T21:32:00+05:30",
+      "recordedBy": "ELDERLY"
     }
   ],
   "appointments": [
     {
       "id": "app_01",
       "doctorName": "Dr. Ananya Kulkarni",
-      "specialty": "Senior Cardiologist (हृदयरोग तज्ज्ञ)",
+      "specialty": "Senior Interventional Cardiologist",
       "hospital": "City Care Heart Hospital, Shivajinagar",
       "date": "2026-11-20",
       "time": "10:30 AM",
       "phone": "+91 99887 76655",
-      "purpose": "Routine BP & ECG follow-up",
+      "purpose": "Quarterly Echocardiogram & BP Follow-up",
       "status": "UPCOMING",
-      "reminderSent": false
+      "reminderSent": true,
+      "notes": "Bring recent fasting blood sugar report and past 14-day BP log."
     },
     {
       "id": "app_02",
       "doctorName": "Dr. Ramesh Deshmukh",
-      "specialty": "Diabetologist (मधुमेह तज्ज्ञ)",
-      "hospital": "Sahyadri Health Clinic",
+      "specialty": "Chief Diabetologist & Endocrinologist",
+      "hospital": "Sahyadri Health Center, Deccan",
       "date": "2026-11-28",
       "time": "11:15 AM",
       "phone": "+91 98223 34455",
-      "purpose": "HbA1c Blood Sugar Review",
+      "purpose": "3-Month HbA1c Glycated Hemoglobin Review",
       "status": "UPCOMING",
-      "reminderSent": false
+      "reminderSent": false,
+      "notes": "Fasting blood test required prior to consultation."
     }
   ],
   "vitals": [
     {
       "id": "vit_01",
       "recordedAt": "2026-11-15T08:00:00+05:30",
+      "mood": "GOOD",
       "bpSystolic": 124,
       "bpDiastolic": 82,
       "bloodSugar": 135,
       "pulseRate": 74,
-      "mood": "HAPPY",
-      "notes": "Feeling energetic after morning walk"
+      "notes": "Morning vitals stable after 20-min garden walk."
     },
     {
       "id": "vit_02",
       "recordedAt": "2026-11-14T08:00:00+05:30",
-      "bpSystolic": 128,
-      "bpDiastolic": 85,
-      "bloodSugar": 142,
+      "mood": "GOOD",
+      "bpSystolic": 126,
+      "bpDiastolic": 84,
+      "bloodSugar": 140,
       "pulseRate": 76,
-      "mood": "NORMAL",
-      "notes": "Slept well"
+      "notes": "Feeling energetic. Slept 7.5 hours peacefully."
+    },
+    {
+      "id": "vit_03",
+      "recordedAt": "2026-11-13T08:00:00+05:30",
+      "mood": "OKAY",
+      "bpSystolic": 130,
+      "bpDiastolic": 86,
+      "bloodSugar": 145,
+      "pulseRate": 78,
+      "notes": "Mild joint stiffness in morning, eased after warm tea."
     }
   ],
-  "alerts": [
+  "notifications": [
     {
-      "id": "alt_01",
+      "id": "notif_01",
       "level": "INFO",
       "title": "Morning Dose Completed",
       "message": "Shantabai marked Telmisartan 40mg as Taken at 08:35 AM.",
       "timestamp": "2026-11-15T08:35:10+05:30",
-      "acknowledged": true,
-      "type": "MISSED_DOSE"
+      "status": "DELIVERED",
+      "read": true,
+      "recipientEmail": "rajesh.caregiver@ayucare.org",
+      "type": "UPCOMING_DOSE"
+    },
+    {
+      "id": "notif_02",
+      "level": "INFO",
+      "title": "Upcoming Doctor Visit Reminder",
+      "message": "Appointment with Dr. Ananya Kulkarni scheduled on Nov 20, 10:30 AM.",
+      "timestamp": "2026-11-14T10:00:00+05:30",
+      "status": "DELIVERED",
+      "read": true,
+      "recipientEmail": "rajesh.caregiver@ayucare.org",
+      "type": "UPCOMING_APPOINTMENT"
     }
   ]
 }

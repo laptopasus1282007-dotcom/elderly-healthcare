@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPin, verifyCaregiverPasscode } from '@/lib/db';
+import { verifyPin, verifyMemberPasscode } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Passcode or PIN is required' }, { status: 400 });
     }
 
+    // Try PIN verification if 4 digits or specifically requested
     if (type === 'ELDERLY' || code.length === 4) {
       const result = verifyPin(code);
       if (result.success) {
@@ -21,13 +22,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Try verifying as caregiver
-    const careResult = verifyCaregiverPasscode(code);
-    if (careResult.success) {
+    // Try family member / caregiver passcode
+    const memberResult = verifyMemberPasscode(code);
+    if (memberResult.success && memberResult.member) {
       return NextResponse.json({
         success: true,
-        role: 'CAREGIVER',
-        caregiver: careResult.caregiver,
+        role: memberResult.member.role,
+        member: memberResult.member,
       });
     }
 
