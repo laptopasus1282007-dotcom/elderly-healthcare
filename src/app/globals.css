@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 241, 245, 249;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+/* High Contrast Mode for visually impaired / senior citizens */
+.high-contrast {
+  background: #000000 !important;
+  color: #ffff00 !important;
+}
+
+.high-contrast * {
+  border-color: #ffff00 !important;
+}
+
+.high-contrast button {
+  border: 3px solid #ffff00 !important;
+}
+
+/* Font Resizing for Accessibility */
+.font-scale-large {
+  font-size: 115% !important;
+}
+
+.font-scale-xl {
+  font-size: 130% !important;
+}
+
+/* Focus styles for keyboard accessibility (WCAG AA/AAA) */
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 4px solid #2563eb !important;
+  outline-offset: 3px !important;
+}
