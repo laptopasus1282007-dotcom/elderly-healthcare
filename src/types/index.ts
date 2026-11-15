@@ -136,3 +136,10 @@ export type ActiveNavTab =
   | 'EMERGENCY' 
   | 'NOTIFICATIONS' 
   | 'SETTINGS';
+
+
+// Backward compatibility type aliases
+export type VitalRecord = WellnessRecord;
+export type Patient = PatientProfile;
+export type AlertNotification = AppNotification;
+export type Caregiver = FamilyMember;

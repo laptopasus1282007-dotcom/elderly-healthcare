@@ -363,14 +363,14 @@ export const ElderlyPortal: React.FC<ElderlyPortalProps> = ({ patient, language 
               🚨 कुटुंबियांना तातडीचा फोन/मेसेज पाठवला आहे!
             </h4>
             <p className="text-lg font-bold text-slate-800 dark:text-slate-200">
-              संपर्क: {patient.emergencyContact?.name} ({patient.emergencyContact?.relationship})
+              संपर्क: {patient.emergencyContacts?.[0]?.name} ({patient.emergencyContacts?.[0]?.relationship})
             </p>
             <a
-              href={`tel:${patient.emergencyContact?.phone}`}
+              href={`tel:${patient.emergencyContacts?.[0]?.phone}`}
               className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-black text-xl rounded-2xl shadow-lg"
             >
               <PhoneCall className="w-6 h-6" />
-              <span>कॉल करा: {patient.emergencyContact?.phone}</span>
+              <span>कॉल करा: {patient.emergencyContacts?.[0]?.phone}</span>
             </a>
           </div>
         )}

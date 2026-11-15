@@ -55,7 +55,7 @@
         "canViewVitals": true,
         "canReceiveAlerts": true
       },
-      "lastActive": "2026-11-15T09:30:00+05:30"
+      "lastActive": "2026-11-15T05:44:41.223Z"
     },
     {
       "id": "fam_02",
@@ -169,9 +169,10 @@
       "scheduledDate": "2026-11-15",
       "scheduledTime": "08:30",
       "status": "TAKEN",
-      "recordedAt": "2026-11-15T10:50:32.397222",
+      "recordedAt": "2026-11-15T05:44:41.238Z",
       "recordedBy": "ELDERLY",
-      "note": "Python unit test verification"
+      "note": "Python unit test verification",
+      "skipReason": "Unit test verification"
     },
     {
       "id": "log_02",

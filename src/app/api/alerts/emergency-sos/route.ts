@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const patient = getPatient();
     const alert = triggerEmergencySos(patient.name);
     const db = readDatabase();
-    const caregiverEmail = db.caregivers[0]?.email || 'caregiver@example.com';
+    const caregiverEmail = db.familyMembers[0]?.email || 'caregiver@example.com';
 
     // Dispatch priority email
     await sendEmailNotification({
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       alert,
-      emergencyContact: patient.emergencyContact,
+      emergencyContact: patient.emergencyContacts?.[0],
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
